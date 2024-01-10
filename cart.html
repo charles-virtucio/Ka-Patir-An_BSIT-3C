@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ka-Patir-An</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+.cart-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cart-item-image {
+  width: 200px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.cart-item-details {
+  flex-grow: 1;
+}
+
+.cart-item-title {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.cart-item-price {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.cart-item-action {
+  margin-right: 10px;
+}
+
+.cart-total {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.empty-cart-message {
+  text-align: center;
+  font-size: 16px;
+  font-style: italic;
+  color: gray;
+}
+
+
+#checkoutButton.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1em;
+  height: 1em;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+  </style>
+
+</head>
+
+<body>
+
+  
+    <div class="content">
+      <h3>Order Summary</h3> <br>
+      <div class="cart-items">
+       
+      </div>
+      <div class="cart-total">
+        Total Price: ₱<span id="cartTotal">0.00</span>
+      </div>
+      <div>
+        <button id="checkoutButton" class="btn btn-primary" onclick="checkout()" style="background-color: black;">Checkout</button>
+                 
+      </div>
+    </div>
+
+  <script>
+  
+    let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+  
+    function renderCartItems() {
+      const cartItemsContainer = document.querySelector('.cart-items');
+      const cartTotal = document.getElementById('cartTotal');
+
+     
+      cartItemsContainer.innerHTML = '';
+
+      if (cartItems.length === 0) {
+       
+        cartTotal.textContent = '0.00';
+        const emptyCartMessage = document.createElement('div');
+        emptyCartMessage.classList.add('empty-cart-message');
+        emptyCartMessage.textContent = 'Your cart is empty';
+        cartItemsContainer.appendChild(emptyCartMessage);
+      } else {
+       
+        cartItems.forEach(item => {
+          const cartItem = document.createElement('div');
+          cartItem.classList.add('cart-item');
+          cartItem.innerHTML = `
+            <div class="cart-item-action">
+              <button class="btn btn-danger" onclick="removeFromCart('${item.id}')" style="background-color:red;">Remove</button>
+            </div>
+            <img src="${getImageUrl(item.id)}" alt="Product Image" class="cart-item-image">
+            <div class="cart-item-details">
+              <h5 class="cart-item-title" style="font-weight: bold;">${getItemTitle(item.id)}</h5>
+              <div style="width: 10px;">
+                Quantity: <input type="number" value="${item.quantity}" min="1" onchange="updateQuantity('${item.id}', this.value)">
+              </div>
+              <p class="cart-item-price">₱${getItemPrice(item.id)}</p>
+              <p>Price based on Quantity: ₱<span id="itemTotal_${item.id}">${(getItemPrice(item.id) * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+            </div>
+          `;
+          cartItemsContainer.appendChild(cartItem);
+        });
+
+     
+       const total = calculateCartTotal();
+    cartTotal.textContent = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+    }
+
+   
+    function updateQuantity(productId, quantity) {
+     
+      const cartItem = cartItems.find(item => item.id === productId);
+
+      if (cartItem) {
+        // Update the quantity of the cart item
+        cartItem.quantity = parseInt(quantity);
+
+        // Store the updated cart items in local storage
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+        // Render the updated cart items
+        renderCartItems();
+      }
+    }
+
+    // Function to update the cart total
+    function calculateCartTotal() {
+      let total = 0;
+
+      cartItems.forEach(item => {
+        const price = getItemPrice(item.id);
+        total += price * item.quantity;
+      });
+
+      return total;
+    }
+
+    // Function to remove an item from the cart
+    function removeFromCart(productId) {
+      // Find the index of the item to remove
+      const itemIndex = cartItems.findIndex(item => item.id === productId);
+
+      if (itemIndex !== -1) {
+        // Remove the item from the cartItems array
+        cartItems.splice(itemIndex, 1);
+
+        // Store the updated cart items in local storage
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+        // Render the updated cart items
+        renderCartItems();
+      }
+    }
+
+    // Function to get the image URL for a product
+    function getImageUrl(productId) {
+      if (productId === 'rb1') {
+        return 'images/PATER.jpg';
+      } else if (productId === 'mtb2') {
+        return 'images/EGG PATER.jpg';
+      } else if (productId === 'gravel1') {
+        return 'images/PATER WITH HALF LONG.jpg';
+      }
+      else if (productId === 'gravel2') {
+        return 'images/CHEESE PATER.jpg';
+      } else if (productId === 'triath1') {
+        return 'images/PATER WITH HOTDOG.jpg';
+      } else if (productId === 'accessories-pump1') {
+        return 'images/PATER EGG WITH SIOMAI.jpg';
+      } else if (productId === 'ebike1') {
+        return 'images/PATER WITH BOILED EGG.jpg';
+      } else if (productId === 'pedal1') {
+        return 'images/PATER DOUBLE RICE WITH EGG.jpg';
+      } else if (productId === 'saddle1') {
+        return 'images/PATER SHANGHAI EGG.jpg';
+      } else if (productId === 'chainring1') {
+        return 'images/PATER OVERLOAD.jpg';
+      }  else if (productId === 'shifter1') {
+        return 'images/brake-ST-R9100-SET.jpg';
+      }
+    }
+
+    // Function to get the title of a product
+    function getItemTitle(productId) {
+      
+      if (productId === 'rb1') {
+        return 'PATER';
+      } else if (productId === 'mtb2') {
+        return 'EGG PATER';
+      } else if (productId === 'gravel1') {
+        return 'PATER WITH HALF LONG';
+      }  else if (productId === 'gravel2') {
+        return 'CHEESE PATER';
+      } else if (productId === 'triath1') {
+        return 'PATER WITH HOTDOG';
+      }  else if (productId === 'accessories-pump1') {
+        return 'PATER EGG WITH SIOMAI';
+      }  else if (productId === 'ebike1') {
+        return 'PATER WITH BOILED EGG';
+      }  else if (productId === 'pedal1') {
+        return 'PATER DOUBLE RICE WITH EGG';
+      } else if (productId === 'saddle1') {
+        return 'PATER SHANGHAI EGG';
+      } else if (productId === 'chainring1') {
+        return 'PATER OVERLOAD';
+      }  else if (productId === 'shifter1') {
+        return 'SHIMANO DURA-ACE ST-R9100 SHIFTER/BRAKE LEVER SET';
+      } 
+    }
+
+    // Function to get the price of a product
+    function getItemPrice(productId) {
+    
+      if (productId === 'rb1') {
+        return 15.00;
+      } else if (productId === 'mtb2') {
+        return 25.00;
+      } else if (productId === 'gravel1') {
+        return 35.00;
+      } else if (productId === 'gravel2') {
+        return 20.00;
+      } else if (productId === 'triath1') {
+        return 25.00;
+      }  else if (productId === 'accessories-pump1') {
+        return 45.00;
+      } else if (productId === 'ebike1') {
+        return 45.00;
+      } else if (productId === 'pedal1') {
+        return 50.00;
+      } else if (productId === 'saddle1') {
+        return 50.00;
+      } else if (productId === 'chainring1') {
+        return 65.00;
+      } else if (productId === 'shifter1') {
+        return 28049.99;
+      } 
+    }
+// Function to handle the checkout button click
+function checkout() {
+  if (cartItems.length === 0) {
+    alert('Your cart is empty. Please add items before checking out.');
+    return; // Exit the function if the cart is empty
+  }
+
+  // Clear the cart items array
+  cartItems = [];
+  const checkoutButton = document.getElementById('checkoutButton');
+  checkoutButton.disabled = true;
+  
+  // Add the loading class to the button
+  checkoutButton.classList.add("loading");
+
+  // Simulate an asynchronous operation
+  setTimeout(function() {
+    // Remove the loading class from the button
+    checkoutButton.classList.remove("loading");
+    
+    // Show a success message
+    alert('Proceed to Payment!');
+    
+    // Store the updated cart items (empty) in local storage
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    
+    // Redirect to the payment page
+    window.location.href = 'payment.html';
+    
+    // Render the updated cart items (empty)
+    renderCartItems();
+  }, 2000);
+}
+   
+    // Initial rendering of the cart items
+    renderCartItems();
+
+    
+  </script>
+
+</body>
+
+</html>
